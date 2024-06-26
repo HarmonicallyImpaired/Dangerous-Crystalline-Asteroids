@@ -1,0 +1,11 @@
+on_game_start_country = {
+	events = {
+		dangercrystal_storyteller.1 #Use the global event country to setup default settings for the galaxy. Also find the host.
+	}
+}
+
+on_press_begin = {
+	events = {
+		dangercrystal_storyteller.2 #Config menu for host
+	}
+}

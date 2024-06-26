@@ -1,0 +1,88 @@
+namespace = dangercrystal_storyteller
+
+# On Game Start (Get Host and set default values)
+country_event = {
+	id = dangercrystal_storyteller.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = no
+		NOT = { has_global_flag = dangercrystal_host_found }
+	}
+
+	immediate = {
+		set_global_flag = dangercrystal_host_found
+		set_country_flag = dangercrystal_host
+		event_target:global_event_country = {
+			set_variable = {
+				which = dangercrystal_wake_up_year
+				value = 60
+			}
+			set_variable = {
+				which = dangercrystal_points_per_cycle
+				value = 1
+			}
+		}
+		if = {
+			limit = {
+				any_system = {
+					OR = {
+						has_star_flag = guardians_hive_system
+						has_star_flag = dangercrystal_alternate_hive_system
+					}
+				}
+			}
+			set_global_flag = dangercrystal_hivers_system_spawned
+		}
+	}
+}
+
+# Give the host the Storyteller Main Menu
+country_event = {
+	id = dangercrystal_storyteller.2
+	title = "dangercrystal_storyteller.2.name"
+	desc = {
+		trigger = {
+			NOT = {
+				has_global_flag = dangercrystal_hivers_system_spawned
+			}
+		}
+		text = "dangercrystal_storyteller.2.desc.a"
+	}
+	desc = {
+		trigger = {
+			has_global_flag = dangercrystal_hivers_system_spawned
+		}
+		text = "dangercrystal_storyteller.2.desc.b"
+	}
+	picture = GFX_evt_dangercrystal_storyteller
+	event_window_type = crisis_leader_conversation
+	# So the issue with this event window type is that it houses a lot of unnecessary stuff in relation to leaders and the Cetana crisis.
+	# This isn't a horrible issue because otherwise the window is great.
+	# But it'd be nice trying to remove them. There is a GUI file that contains all of this, but I can't figure out where the name used here ties into the name of that file.
+	# The Stellaris Wiki has a section on GUI modding with a few interesting commands, but I need to check it out later.
+	is_triggered_only = yes
+
+	trigger = {
+		has_country_flag = dangercrystal_host
+		NOT = {
+			has_global_flag = dangercrystal_storyteller_opened
+		}
+	}
+
+	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					has_global_flag = dangercrystal_storyteller_opened
+				}
+			}
+			set_global_flag = dangercrystal_storyteller_opened
+		}
+	}
+
+	option = { #Let us play the game!
+		name = dangercrystal_menu_exit
+	}
+}
