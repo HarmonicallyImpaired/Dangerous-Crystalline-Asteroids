@@ -1,0 +1,430 @@
+namespace = dangercrystal_storyteller
+
+# On Game Start (Get Host and set default values)
+country_event = {
+	id = dangercrystal_storyteller.1
+	hide_window = yes
+	is_triggered_only = yes
+
+	trigger = {
+		is_ai = no
+		NOT = { has_global_flag = dangercrystal_host_found }
+	}
+
+	immediate = {
+		set_global_flag = dangercrystal_host_found
+		set_country_flag = dangercrystal_host
+		# Save default values to event_country so it doesn't get deleted later.
+		event_target:global_event_country = {
+			set_variable = {
+				which = dangercrystal_self_awaken_year
+				value = 60
+			}
+			set_variable = {
+				which = dangercrystal_points_per_cycle
+				value = 1
+			}
+			set_variable = {
+				which = dangercrystal_covert_awaken_year
+				value = 10
+			}
+		}
+		# Roll for a random Story Mode, with slight bias for Covert. If either covert or traditional are picked, flag if the system already exists too.
+		random_list = {
+			34 = {
+				set_global_flag = dangercrystal_covert_story
+				# Code needs to be added here to replace the original Hiver system, if it exists.
+			}
+			33 = {
+				set_global_flag = dangercrystal_traditional_story
+			}
+			33 = {
+				set_global_flag = dangercrystal_invasion_story
+				# Code needs to be added here to "destroy" either Hiver system if either variant exists.
+			}
+		}
+		# Check for if the Hivers exist on galactic spawn.
+		if = {
+			limit = {
+				any_system = {
+					OR = {
+						has_star_flag = guardians_hive_system
+						has_star_flag = dangercrystal_alternate_hive_system
+					}
+				}
+			}
+			set_global_flag = dangercrystal_hivers_system_spawned
+		}
+	}
+}
+
+# Give the host the Storyteller Main Menu
+country_event = {
+	id = dangercrystal_storyteller.2
+	title = "dangercrystal_storyteller.2.name"
+	desc = {
+		trigger = {
+			NOT = {
+				has_global_flag = dangercrystal_hivers_system_spawned
+			}
+		}
+		text = "dangercrystal_storyteller.2.desc.a"
+	}
+	desc = {
+		trigger = {
+			has_global_flag = dangercrystal_hivers_system_spawned
+		}
+		text = "dangercrystal_storyteller.2.desc.b"
+	}
+	picture = GFX_evt_dangercrystal_storyteller
+	event_window_type = crisis_leader_conversation
+	# So the issue with this event window type is that it houses a lot of unnecessary stuff in relation to leaders and the Cetana crisis.
+	# This isn't a horrible issue because otherwise the window is great.
+	# But it'd be nice trying to remove them. There is a GUI file that contains all of this, but I can't figure out where the name used here ties into the name of that file.
+	# The Stellaris Wiki has a section on GUI modding with a few interesting commands, but I need to check it out later.
+	is_triggered_only = yes
+
+	immediate = {
+		if = {
+			limit = {
+				NOT = {
+					has_global_flag = dangercrystal_storyteller_opened
+				}
+			}
+			set_global_flag = dangercrystal_storyteller_opened
+		}
+	}
+
+	#Configure Story Modes
+	option = {
+		name = dangercrystal_storyteller.2.a
+		hidden_effect = {
+			country_event = { id = dangercrystal_storyteller.2100 days = 0 }
+		}
+	}
+
+	#Let us play the game!
+	option = {
+		name = dangercrystal_menu_exit
+		hidden_effect = {
+			remove_global_flag = dangercrystal_storyteller_opened
+			if = {
+				limit = {
+					event_target:global_event_country = {
+						check_variable = {
+							which = dangercrystal_covert_awaken_year
+							value >= dangercrystal_self_awaken_year
+						}
+					}
+				}
+				while = {
+					limit = {
+						event_target:global_event_country = {
+							check_variable = {
+								which = dangercrystal_covert_awaken_year
+								value >= dangercrystal_self_awaken_year
+							}
+						}
+					}
+					event_target:global_event_country = {
+						subtract_variable = {
+							which = dangercrystal_covert_awaken_year
+							value = 10
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					event_target:global_event_country = {
+						check_variable = {
+							which = dangercrystal_covert_awaken_year
+							value < 10
+						}
+					}
+				}
+				event_target:global_event_country = {
+					set_variable = {
+						which = dangercrystal_covert_awaken_year
+						value = 10
+					}
+					if = {
+						limit = {
+							has_global_flag = dangercrystal_covert_story
+						}
+						set_variable = {
+							which = dangercrystal_self_awaken_year
+							value = 20
+						}
+					}
+				}
+			}
+		}
+	}
+}
+
+# Story Mode Menu
+country_event = {
+	id = dangercrystal_storyteller.2100
+	title = "dangercrystal_storyteller.2.a"
+	desc = {
+		trigger = {
+			has_global_flag = dangercrystal_covert_story
+		}
+		text = "dangercrystal_storyteller.2100.desc.a"
+	}
+	desc = {
+		trigger = {
+			has_global_flag = dangercrystal_traditional_story
+		}
+		text = "dangercrystal_storyteller.2100.desc.b"
+	}
+	desc = {
+		trigger = {
+			has_global_flag = dangercrystal_invasion_story
+		}
+		text = "dangercrystal_storyteller.2100.desc.c"
+	}
+	picture = GFX_evt_dangercrystal_storyteller
+	event_window_type = crisis_leader_conversation
+	is_triggered_only = yes
+
+	# Cycle through story modes. Locks once the Covert Crisis could begin.
+	option = {
+		name = dangercrystal_storyteller.2100.a
+		custom_tooltip = dangercrystal_storyteller.2100.a.tooltip
+		trigger = {
+			NOT = {
+				has_global_flag = dangercrystal_story_started
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					has_global_flag = dangercrystal_covert_story
+				}
+				remove_global_flag = dangercrystal_covert_story
+				set_global_flag = dangercrystal_traditional_story
+			}
+			else_if = {
+				limit = {
+					has_global_flag = dangercrystal_traditional_story
+				}
+				remove_global_flag = dangercrystal_traditional_story
+				set_global_flag = dangercrystal_invasion_story
+			}
+			else = {
+				remove_global_flag = dangercrystal_invasion_story
+				set_global_flag = dangercrystal_covert_story
+			}
+			country_event = { id = dangercrystal_storyteller.2100 days = 0 }
+		}
+	}
+
+	# Can traditional Hivers wake themselves up/Can covert Hivers awake when attacked before start year?
+	option = {
+		name = dangercrystal_storyteller.2100.b
+		if = {
+			limit = {
+				NOT = {
+					has_global_flag = dangercrystal_self_awakening_disabled
+				}
+			}
+			custom_tooltip = dangercrystal_storyteller.2100.bon.tooltip
+		}
+		else = {
+			custom_tooltip = dangercrystal_storyteller.2100.boff.tooltip
+		}
+		allow = {
+			custom_tooltip_fail = {
+				text = dangercrystal_storyteller.2100.bfail.tooltip
+				NOT = {
+					has_global_flag = dangercrystal_story_started
+				}
+			}
+		}
+		hidden_effect = {
+			if = {
+				limit = {
+					has_global_flag = dangercrystal_self_awakening_disabled
+				}
+				remove_global_flag = dangercrystal_self_awakening_disabled
+			}
+			else = {
+				set_global_flag = dangercrystal_self_awakening_disabled
+			}
+			country_event = { id = dangercrystal_storyteller.2100 days = 0 }
+		}
+	}
+
+	# Increase Crisis start year by 10.
+	option = {
+		name = dangercrystal_storyteller.2100.c
+		custom_tooltip = dangercrystal_storyteller.2100.c.tooltip
+		trigger = {
+			NOT = {
+				has_global_flag = dangercrystal_story_started
+			}
+		}
+		hidden_effect = {
+			event_target:global_event_country = {
+				change_variable = {
+					which = dangercrystal_self_awaken_year
+					value = 10
+				}
+			}
+			country_event = { id = dangercrystal_storyteller.2100 days = 0 }
+		}
+	}
+
+	# Decrease Crisis start year by 10. Cannot be below 10, and cannot be below the Covert Start Year if Covert is chosen.
+	option = {
+		name = dangercrystal_storyteller.2100.d
+		custom_tooltip = dangercrystal_storyteller.2100.d.tooltip
+		trigger = {
+			NOT = {
+				has_global_flag = dangercrystal_story_started
+			}
+		}
+		allow = {
+			custom_tooltip_fail = {
+				text = dangercrystal_storyteller.2100.dfail.tooltip
+				event_target:global_event_country = {
+					check_variable = {
+						which = dangercrystal_self_awaken_year
+						value > 10
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			event_target:global_event_country = {
+				subtract_variable = {
+					which = dangercrystal_self_awaken_year
+					value = 10
+				}
+			}
+			country_event = { id = dangercrystal_storyteller.2100 days = 0 }
+		}
+	}
+
+	# Increase Covert start year by 10. Only available when Covert is selected.
+	option = {
+		name = dangercrystal_storyteller.2100.e
+		custom_tooltip = dangercrystal_storyteller.2100.e.tooltip
+		trigger = {
+			NOT = {
+				has_global_flag = dangercrystal_story_started
+			}
+			has_global_flag = dangercrystal_covert_story
+		}
+		hidden_effect = {
+			event_target:global_event_country = {
+				change_variable = {
+					which = dangercrystal_covert_awaken_year
+					value = 10
+				}
+			}
+			country_event = { id = dangercrystal_storyteller.2100 days = 0 }
+		}
+	}
+
+	# Decrease Covert start year by 10. Same rules for last 2 options.
+	option = {
+		name = dangercrystal_storyteller.2100.f
+		custom_tooltip = dangercrystal_storyteller.2100.f.tooltip
+		trigger = {
+			NOT = {
+				has_global_flag = dangercrystal_story_started
+			}
+			has_global_flag = dangercrystal_covert_story
+		}
+		allow = {
+			custom_tooltip_fail = {
+				text = dangercrystal_storyteller.2100.ffail.tooltip
+				event_target:global_event_country = {
+					check_variable = {
+						which = dangercrystal_covert_awaken_year
+						value > 10
+					}
+				}
+			}
+		}
+		hidden_effect = {
+			event_target:global_event_country = {
+				subtract_variable = {
+					which = dangercrystal_covert_awaken_year
+					value = 10
+				}
+			}
+			country_event = { id = dangercrystal_storyteller.2100 days = 0 }
+		}
+	}
+
+	#Return us to the main menu!
+	option = {
+		name = dangercrystal_menu_return
+		hidden_effect = {
+			country_event = { id = dangercrystal_storyteller.2 days = 0 }
+		}
+	}
+
+	#Let us play the game!
+	option = {
+		name = dangercrystal_menu_exit
+		hidden_effect = {
+			remove_global_flag = dangercrystal_storyteller_opened
+			if = {
+				limit = {
+					event_target:global_event_country = {
+						check_variable = {
+							which = dangercrystal_covert_awaken_year
+							value >= dangercrystal_self_awaken_year
+						}
+					}
+				}
+				while = {
+					limit = {
+						event_target:global_event_country = {
+							check_variable = {
+								which = dangercrystal_covert_awaken_year
+								value >= dangercrystal_self_awaken_year
+							}
+						}
+					}
+					event_target:global_event_country = {
+						subtract_variable = {
+							which = dangercrystal_covert_awaken_year
+							value = 10
+						}
+					}
+				}
+			}
+			if = {
+				limit = {
+					event_target:global_event_country = {
+						check_variable = {
+							which = dangercrystal_covert_awaken_year
+							value < 10
+						}
+					}
+				}
+				event_target:global_event_country = {
+					set_variable = {
+						which = dangercrystal_covert_awaken_year
+						value = 10
+					}
+					if = {
+						limit = {
+							has_global_flag = dangercrystal_covert_story
+						}
+						set_variable = {
+							which = dangercrystal_self_awaken_year
+							value = 20
+						}
+					}
+				}
+			}
+		}
+	}
+}
